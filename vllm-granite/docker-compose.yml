@@ -46,6 +46,8 @@ services:
       - "2"
       - --kv-cache-dtype
       - fp8
+      - --enable-auto-tool-choice
+      - --tool-call-parser granite
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:v0.11.0-slim
