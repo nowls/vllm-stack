@@ -1,5 +1,5 @@
 services:
-  vllm-granite:
+  vllm-gemma4:
     image: vllm/vllm-openai-rocm:v0.26.0
 
     restart: unless-stopped
@@ -67,7 +67,7 @@ services:
 
     environment:
       # Optional initial/default OpenAI-compatible backend.
-      OPENAI_API_BASE_URL: http://vllm-granite:8000/v1
+      OPENAI_API_BASE_URL: http://vllm-gemma4:8000/v1
       OPENAI_API_KEY: not-used
 
 volumes:
