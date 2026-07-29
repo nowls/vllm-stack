@@ -1,0 +1,67 @@
+services:
+  vllm-granite:
+    image: vllm/vllm-openai-rocm:v0.26.0
+
+    restart: unless-stopped
+
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+
+    group_add:
+      - video
+      - render
+
+    ipc: host
+
+    environment:
+      HIP_VISIBLE_DEVICES: "0,1"
+      ROCR_VISIBLE_DEVICES: "0,1"
+      NCCL_PROTO: Simple
+      NCCL_DEBUG: INFO
+      VLLM_ROCM_USE_AITER: "0"
+      HF_HOME: /root/.cache/huggingface
+
+    volumes:
+      - /srv/huggingface:/root/.cache/huggingface
+
+    ports:
+      - "8000:8000"
+
+    command:
+      - --model
+      - ibm-granite/granite-4.1-30b-fp8
+      - --tensor-parallel-size
+      - "2"
+      - --distributed-executor-backend
+      - mp
+      - --trust-remote-code
+      - --attention-backend
+      - TRITON_ATTN
+      - --max-model-len
+      - "65536"
+      - --gpu-memory-utilization
+      - "0.92"
+      - --max-num-seqs
+      - "2"
+      - --kv-cache-dtype
+      - fp8
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:v0.11.0-slim
+
+    restart: unless-stopped
+
+    ports:
+      - "3000:8080"
+
+    volumes:
+      - open-webui-data:/app/backend/data
+
+    environment:
+      # Optional initial/default OpenAI-compatible backend.
+      OPENAI_API_BASE_URL: http://vllm-granite:8000/v1
+      OPENAI_API_KEY: not-used
+
+volumes:
+  open-webui-data:

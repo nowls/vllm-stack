@@ -1,0 +1,18 @@
+services:
+  vllm-gpu0:
+    image: vllm/vllm-openai-rocm:v0.26.0
+    environment:
+      HIP_VISIBLE_DEVICES: "0"
+    command:
+      - ${GPU0_MODEL}
+      - --served-model-name
+      - ${GPU0_MODEL_NAME}
+
+  vllm-gpu1:
+    image: vllm/vllm-openai-rocm:v0.26.0
+    environment:
+      HIP_VISIBLE_DEVICES: "1"
+    command:
+      - ${GPU1_MODEL}
+      - --served-model-name
+      - ${GPU1_MODEL_NAME}
