@@ -88,6 +88,29 @@ it only recreates containers. Do not run `docker compose down -v` unless you
 intentionally want to permanently delete Open WebUI data. Plain `docker
 compose down` is safe and preserves it.
 
+## Single-model Qwen3.6 stacks
+
+Use these stacks to run one Qwen model at a time with its native 262,144-token
+context limit and BF16 KV cache. Both use TP=2 across the two GPUs and expose
+Open WebUI on port 3000 and vLLM on port 8000.
+
+```sh
+# Dense 27B FP8 model
+cd vllm-qwen36-dense
+docker compose pull
+docker compose up -d
+
+# Or: 35B-A3B MoE FP8 model
+cd ../vllm-qwen36-moe
+docker compose pull
+docker compose up -d
+```
+
+Both stacks enable Qwen reasoning and parsed tool calls. Run only one model
+stack at a time because their host ports and both GPUs are shared. The MoE
+stack uses Qwen's official `Qwen/Qwen3.6-35B-A3B-FP8` checkpoint rather than
+the community AWQ checkpoint used by the dual-resident experiment.
+
 ## Adding more Compose projects
 
 Keep each model deployment as an independent project directory. Give each project its own Compose file, environment file, host ports, and persistent volumes:
@@ -96,6 +119,10 @@ Keep each model deployment as an independent project directory. Give each projec
 .
 ├── README.md
 ├── vllm-granite/
+│   └── docker-compose.yml
+├── vllm-qwen36-dense/
+│   └── docker-compose.yml
+├── vllm-qwen36-moe/
 │   └── docker-compose.yml
 └── vllm-dual-model/
     ├── docker-compose.yml
