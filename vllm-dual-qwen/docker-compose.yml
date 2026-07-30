@@ -15,6 +15,7 @@ services:
       NCCL_PROTO: Simple
       NCCL_DEBUG: INFO
       VLLM_ROCM_USE_AITER: "0"
+      FLASH_ATTENTION_TRITON_AMD_ENABLE: "TRUE"
       HF_HOME: /root/.cache/huggingface
     volumes:
       - /srv/huggingface:/root/.cache/huggingface
@@ -62,6 +63,7 @@ services:
       NCCL_PROTO: Simple
       NCCL_DEBUG: INFO
       VLLM_ROCM_USE_AITER: "0"
+      FLASH_ATTENTION_TRITON_AMD_ENABLE: "TRUE"
       HF_HOME: /root/.cache/huggingface
     volumes:
       - /srv/huggingface:/root/.cache/huggingface
