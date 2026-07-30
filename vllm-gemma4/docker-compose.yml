@@ -36,7 +36,7 @@ services:
       - --distributed-executor-backend
       - mp
       - --max-model-len
-      - "65536"
+      - "131072"
       - --gpu-memory-utilization
       - "0.92"
       - --max-num-seqs
@@ -50,8 +50,8 @@ services:
       - gemma4
       - --chat-template
       - /app/vllm/examples/tool_chat_template_gemma4.jinja
-      - --limit-mm-per-prompt
-      - image=0,audio=0
+      - --limit-mm-per-prompt.image=0
+      - --limit-mm-per-prompt.audio=0
       - --async-scheduling
 
   open-webui:
