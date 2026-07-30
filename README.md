@@ -50,6 +50,35 @@ docker compose down
 
 The named `open-webui-data` volume preserves Open WebUI data. The host-mounted `/srv/huggingface` directory preserves downloaded model files.
 
+## Dual Qwen planner and executor
+
+`vllm-dual-qwen` runs two Qwen3.6 services across both AMD GPUs: the 27B
+architect/planner on port 8000 and the 35B-A3B tool executor on port 8001.
+Open WebUI is exposed on port 3000 and is preconfigured with both internal
+OpenAI-compatible endpoints.
+
+```sh
+cd vllm-dual-qwen
+docker compose pull
+docker compose up -d
+```
+
+Open <http://localhost:3000> and select either `qwen-architect` or
+`qwen-executor`. Use the architect for planning and the executor for tool
+calls. The Open WebUI data is stored in the project's named
+`open-webui-data` volume.
+
+For normal upgrades or configuration changes, run the same command again:
+
+```sh
+docker compose up -d
+```
+
+This preserves the named volume. `docker compose up -d --force-recreate` also
+preserves mounted named volumes; it only recreates containers. Do not run
+`docker compose down -v` unless you intentionally want to permanently delete
+Open WebUI data. Plain `docker compose down` is safe and preserves it.
+
 ## Adding more Compose projects
 
 Keep each model deployment as an independent project directory. Give each project its own Compose file, environment file, host ports, and persistent volumes:
@@ -70,6 +99,25 @@ For a stack serving two models, use one vLLM service per model when they need se
 
 Open WebUI can also manage multiple OpenAI-compatible connections in its connection settings. This allows the WebUI to remain stable while the selected vLLM backend changes. See the [Open WebUI environment configuration](https://docs.openwebui.com/reference/env-configuration/) and [vLLM Docker documentation](https://docs.vllm.ai/en/latest/deployment/docker/) for the current configuration details.
 
+## Switching stacks
+
+The current stacks use the same host ports (notably 8000 and 3000), so run one
+Open WebUI stack at a time. Stop the current stack without deleting volumes,
+then start the next one:
+
+```sh
+cd vllm-granite
+docker compose down
+cd ../vllm-dual-qwen
+docker compose up -d
+```
+
+The Hugging Face cache at `/srv/huggingface` is already shared, so downloaded
+weights are reused. Each Compose project currently has its own Open WebUI
+volume, so its chats and settings remain isolated. If you want one shared
+Open WebUI history across all stacks, standardize the projects on one external
+named volume and continue running only one Open WebUI container at a time.
+
 ## Useful commands
 
 Run these from the selected project directory:
@@ -79,4 +127,3 @@ docker compose config
 docker compose ps
 docker compose logs -f
 ```
-
