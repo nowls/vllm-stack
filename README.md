@@ -60,7 +60,9 @@ OpenAI-compatible endpoints.
 ```sh
 cd vllm-dual-qwen
 docker compose pull
-docker compose up -d
+docker compose up -d qwen-architect
+until curl -fsS http://localhost:8000/health >/dev/null; do sleep 5; done
+docker compose up -d qwen-executor open-webui
 ```
 
 Open <http://localhost:3000> and select either `qwen-architect` or
@@ -68,16 +70,23 @@ Open <http://localhost:3000> and select either `qwen-architect` or
 calls. The Open WebUI data is stored in the project's named
 `open-webui-data` volume.
 
-For normal upgrades or configuration changes, run the same command again:
+Start the architect before the executor on a cold start (as shown above). Both
+models use both GPUs, and their checkpoints are larger than available host RAM
+for prefetching; loading them concurrently can make the executor fail from
+temporary host- or GPU-memory pressure. If both model services have been
+stopped, repeat this ordered startup sequence.
+
+For normal upgrades or configuration changes, use `docker compose up -d` for
+the service you changed. This preserves the named volume. For example:
 
 ```sh
-docker compose up -d
+docker compose up -d open-webui
 ```
 
-This preserves the named volume. `docker compose up -d --force-recreate` also
-preserves mounted named volumes; it only recreates containers. Do not run
-`docker compose down -v` unless you intentionally want to permanently delete
-Open WebUI data. Plain `docker compose down` is safe and preserves it.
+`docker compose up -d --force-recreate` also preserves mounted named volumes;
+it only recreates containers. Do not run `docker compose down -v` unless you
+intentionally want to permanently delete Open WebUI data. Plain `docker
+compose down` is safe and preserves it.
 
 ## Adding more Compose projects
 
