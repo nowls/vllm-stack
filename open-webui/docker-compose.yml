@@ -1,0 +1,14 @@
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:v0.11.0-slim
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    volumes:
+      - open-webui-data:/app/backend/data
+    environment:
+      OPENAI_API_BASE_URL: http://${VLLM_HOST}:8000/v1
+      OPENAI_API_KEY: not-used
+
+volumes:
+  open-webui-data:
