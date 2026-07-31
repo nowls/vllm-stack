@@ -31,6 +31,8 @@ services:
       - --distributed-executor-backend
       - mp
       - --language-model-only
+      - --mm-processor-cache-gb
+      - "0"
       - --max-model-len
       - "262144"
       - --gpu-memory-utilization
