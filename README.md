@@ -61,7 +61,7 @@ docker compose down
 ```
 
 The `OPEN_WEBUI_DATA_DIR` setting in `open-webui/.env` controls the host bind
-mount used to preserve Open WebUI data; it defaults to `/srv/open-webui-data`.
+mount used to preserve Open WebUI data; it defaults to `/srv/openwebui`.
 The host-mounted `/srv/huggingface` directory preserves downloaded model files.
 
 ## Dual Qwen planner and executor
