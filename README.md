@@ -35,7 +35,8 @@ Once it is ready:
 ## Open WebUI
 
 Run Open WebUI on its own VM from the `open-webui` directory. Its `.env` file
-sets the reachable vLLM host; the default is `vllm.home.arpa`.
+sets the full reachable OpenAI-compatible vLLM URL; the default is
+`http://vllm.home.arpa:8000/v1`.
 
 ```sh
 cd open-webui
@@ -44,7 +45,7 @@ docker compose up -d
 ```
 
 Open <http://localhost:3000>. The initial OpenAI-compatible connection is
-`http://vllm.home.arpa:8000/v1`. Change `VLLM_HOST` in `.env` and recreate the
+the `OPENAI_API_BASE_URL` value in `.env`. Change that value and recreate the
 service if the vLLM VM address changes. For the dual-Qwen stack, add its
 executor endpoint manually in Open WebUI as `http://vllm.home.arpa:8001/v1`.
 
