@@ -60,9 +60,9 @@ Stop the stack with:
 docker compose down
 ```
 
-The `open-webui` project's named `open-webui-data` volume preserves Open WebUI
-data. The host-mounted `/srv/huggingface` directory preserves downloaded model
-files.
+The `OPEN_WEBUI_DATA_DIR` setting in `open-webui/.env` controls the host bind
+mount used to preserve Open WebUI data; it defaults to `/srv/open-webui-data`.
+The host-mounted `/srv/huggingface` directory preserves downloaded model files.
 
 ## Dual Qwen planner and executor
 
@@ -89,7 +89,7 @@ temporary host- or GPU-memory pressure. If both model services have been
 stopped, repeat this ordered startup sequence.
 
 For normal Open WebUI upgrades or configuration changes, run this from the
-`open-webui` directory. This preserves the named volume. For example:
+`open-webui` directory. This preserves the data bind mount. For example:
 
 ```sh
 docker compose up -d open-webui

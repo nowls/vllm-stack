@@ -5,10 +5,7 @@ services:
     ports:
       - "3000:8080"
     volumes:
-      - open-webui-data:/app/backend/data
+      - ${OPEN_WEBUI_DATA_DIR}:/app/backend/data
     environment:
       OPENAI_API_BASE_URL: http://${VLLM_HOST}:8000/v1
       OPENAI_API_KEY: not-used
-
-volumes:
-  open-webui-data:
