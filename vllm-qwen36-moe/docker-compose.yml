@@ -1,6 +1,6 @@
 services:
   vllm-qwen36-moe:
-    image: vllm/vllm-openai-rocm:v0.26.0
+    image: vllm/vllm-openai-rocm:v0.27.1
     restart: unless-stopped
     devices:
       - /dev/kfd:/dev/kfd
@@ -12,6 +12,7 @@ services:
     environment:
       HIP_VISIBLE_DEVICES: "0,1"
       ROCR_VISIBLE_DEVICES: "0,1"
+      HSA_ENABLE_IPC_MODE_LEGACY: "0"
       NCCL_PROTO: Simple
       NCCL_DEBUG: INFO
       VLLM_ROCM_USE_AITER: "0"
