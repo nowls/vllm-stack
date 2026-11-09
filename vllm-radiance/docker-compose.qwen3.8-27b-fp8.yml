@@ -4,7 +4,7 @@
 # See COMPOSE.md before replacing a container with an unmounted model cache.
 services:
   vllm:
-    image: ${IMAGE:-vllm-radiance:0.9.3}
+    image: ${IMAGE:-stilldeadcode/vllm-radiance:0.9.3}
     container_name: ${CONTAINER_NAME:-vllm-radiance-qwen}
     restart: unless-stopped
     command:
