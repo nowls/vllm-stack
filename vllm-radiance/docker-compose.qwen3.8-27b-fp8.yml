@@ -1,0 +1,94 @@
+# Standalone Qwen project; can run alongside the separate Gemma project.
+# docker compose --env-file .env --env-file .env.qwen -f docker-compose.qwen3.8-27b-fp8.yml up -d
+# MODELS is a Hugging Face cache root (containing hub/), not an unpacked model tree.
+# See COMPOSE.md before replacing a container with an unmounted model cache.
+services:
+  vllm:
+    image: ${IMAGE:-vllm-radiance:0.9.3}
+    container_name: ${CONTAINER_NAME:-vllm-radiance-qwen}
+    restart: unless-stopped
+    command:
+      - Qwen/Qwen3.8-27B-FP8
+      - --served-model-name=qwen3.8-27b
+      - --quantization=fp8
+      - --tensor-parallel-size=${TP:-2}
+      - --max-num-seqs=${MAX_NUM_SEQS:-6}
+      - --max-model-len=${MAX_MODEL_LEN:-262144}
+      - --gpu-memory-utilization=${GPU_UTIL:-0.97}
+      - --max-num-batched-tokens=${MAX_NUM_BATCHED_TOKENS:-4096}
+      - --kv-cache-dtype=fp8
+      - --attention-backend=ROCM_AITER_UNIFIED_ATTN
+      - --enable-prefix-caching
+      - --mamba-cache-mode=align
+      # Qwen carries its own MTP head; no separate draft model is needed.
+      - '--speculative-config={"method":"mtp","num_speculative_tokens":${MTP_NSPEC:-8},"attention_backend":"ROCM_AITER_UNIFIED_ATTN","disable_padded_drafter_batch":true}'
+      # Recompute this ladder if MAX_NUM_SEQS or MTP_NSPEC changes (default ceiling: 8 * 9).
+      - '--compilation-config={"cudagraph_capture_sizes":[1,2,4,8,16,24,32,40,48,56,64,72]}'
+      - --no-async-scheduling
+      - --enable-auto-tool-choice
+      - --tool-call-parser=qwen3_coder
+      - --reasoning-parser=qwen3
+      - --chat-template=/work/qwen3.8-enhanced.jinja
+      - --language-model-only
+      - --trust-remote-code
+      - --host=0.0.0.0
+      - --port=8000
+    environment:
+      VLLM_API_KEY: "${VLLM_API_KEY:-}"
+      # Explicitly put Hub downloads in the writable host bind mount below.
+      HF_HOME: /root/.cache/huggingface
+      HF_HUB_CACHE: /root/.cache/huggingface/hub
+      HF_TOKEN: ${HF_TOKEN:-}
+      HIP_VISIBLE_DEVICES: "${HIP_VISIBLE_DEVICES:-0,1}"
+      # Preserve the base file's gfx1201 AITER routing.
+      VLLM_ROCM_USE_AITER: "1"
+      VLLM_ROCM_USE_AITER_UNIFIED_ATTENTION: "1"
+      VLLM_ROCM_USE_AITER_MHA: "0"
+      VLLM_ROCM_USE_AITER_MLA: "0"
+      VLLM_ROCM_USE_AITER_MOE: "0"
+      VLLM_ROCM_USE_AITER_LINEAR: "0"
+      VLLM_ROCM_USE_AITER_FP8BMM: "0"
+      VLLM_ROCM_USE_AITER_FP4BMM: "0"
+      VLLM_ROCM_USE_AITER_RMSNORM: "0"
+      RADIANCE_FUSE_RMS_QUANT: "1"
+      RADIANCE_USE_R4D: "${RADIANCE_USE_R4D:-1}"
+      RADIANCE_USE_R4D_AR: "${RADIANCE_USE_R4D_AR:-1}"
+      RADIANCE_USE_R4D_AR_QUANT: "1"
+      RADIANCE_NUMA_BIND: "${RADIANCE_NUMA_BIND:-}"
+      RADIANCE_DYNAMIC_DRAFT: "1"
+      RADIANCE_DRAFT_SCHEDULE: "${RADIANCE_DRAFT_SCHEDULE:-1:8,2:7,4:6,8:5,16:4}"
+      RADIANCE_DRAFT_TAU: "${RADIANCE_DRAFT_TAU:-0.28}"
+      # If disabling FAST_DRAFT, use DRAFT_TAU=0.35 as in the base file.
+      RADIANCE_FAST_DRAFT: "${RADIANCE_FAST_DRAFT:-1}"
+      NCCL_PROTO: Simple
+      TORCHINDUCTOR_COMPILE_THREADS: "4"
+      VLLM_CACHE_ROOT: /cache/vllm
+      TORCHINDUCTOR_CACHE_DIR: /cache/inductor
+      TRITON_CACHE_DIR: /cache/triton
+      AITER_ROOT_DIR: /cache/aiter
+      TRITON_CACHE_AUTOTUNING: "1"
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - "${RENDER_GID:?Set RENDER_GID in .env}"
+      - "${VIDEO_GID:?Set VIDEO_GID in .env}"
+    cap_add:
+      - SYS_PTRACE
+      - SYS_NICE
+    security_opt:
+      - seccomp=unconfined
+    ipc: host
+    ports:
+      - "${HOST_PORT:-8000}:8000"
+    volumes:
+      # Read/write: huggingface_hub must create blobs, refs, snapshots and locks.
+      - ${MODELS:-/srv/huggingface}:/root/.cache/huggingface
+      - ${VLLM_CACHE:-./vllm-cache/qwen}:/cache
+      - ${WORK:-.}:/work:ro
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 60
+      start_period: 1800s
