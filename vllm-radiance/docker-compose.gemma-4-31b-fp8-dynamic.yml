@@ -2,6 +2,7 @@
 # docker compose --env-file .env --env-file .env.gemma -f docker-compose.gemma-4-31b-fp8-dynamic.yml up -d
 # This is RedHatAI's FP8-dynamic checkpoint, not the FP8-block variant.
 # MODELS is a Hugging Face cache root (containing hub/). See COMPOSE.md.
+name: vllm-radiance-gemma
 services:
   vllm:
     image: ${IMAGE:-stilldeadcode/vllm-radiance:0.9.3}

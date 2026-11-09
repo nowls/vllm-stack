@@ -2,6 +2,7 @@
 # docker compose --env-file .env --env-file .env.qwen -f docker-compose.qwen3.8-27b-fp8.yml up -d
 # MODELS is a Hugging Face cache root (containing hub/), not an unpacked model tree.
 # See COMPOSE.md before replacing a container with an unmounted model cache.
+name: vllm-radiance-qwen
 services:
   vllm:
     image: ${IMAGE:-stilldeadcode/vllm-radiance:0.9.3}
